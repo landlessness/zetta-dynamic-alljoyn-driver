@@ -29,16 +29,23 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
   // assert.equal(typeof(aboutProxy), 'object');
 
   var options = {};
+  var appId = aboutData['AppId'];
   
-  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'alljoyn', alljoynId: 1 });
+  // TODO: make this a helper function in the AllJoyn node package
+  options.appIdHexString = '';
+  for (i = 0; i < appId.length; i++) { 
+    options.appIdHexString += appId[i].toString(16);
+  }
+  console.log("*** options.appIdHexString: " + options.appIdHexString)
+  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'alljoyn', alljoynId: options.appIdHexString });
   this.server.find(dynamicAllJoynDeviceQuery, function(err, results){
     if (err) {
       return;
     }
     if (results.length > 0) {
-      self.provision(results[0], DynamicAllJoyn, options, aboutProxy);
+      self.provision(results[0], DynamicAllJoyn, options);
     } else {
-      self.discover(DynamicAllJoyn, options, aboutProxy);
+      self.discover(DynamicAllJoyn, options);
     }
   });
 

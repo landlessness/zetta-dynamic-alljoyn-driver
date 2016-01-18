@@ -1,16 +1,17 @@
 var Device = require('zetta-device');
 var util = require('util');
 
-var DynamicAllJoyn = module.exports = function(options) {
+var DynamicAllJoyn = module.exports = function(options, aboutData) {
   Device.call(this);
   this._default = options['default'];
+  this.alljoynId = options.appIdHexString;
 };
 util.inherits(DynamicAllJoyn, Device);
 
 DynamicAllJoyn.prototype.init = function(config) {
   config
   .name('DynamicAllJoyn')
-  .type('starter')
+  .type('alljoyn')
   .state('waiting')
   .when('waiting', { allow: ['do']})
   .when('doing', { allow: [] })
