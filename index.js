@@ -3,14 +3,45 @@ var util = require('util');
 var DynamicAllJoyn = require('./dynamic_alljoyn');
 var alljoyn = require('alljoyn');
 
+var clientBusAttachment = null;
+
 var DynamicAllJoynScout = module.exports = function() {
   Scout.call(this);
 };
 util.inherits(DynamicAllJoynScout, Scout);
 
-var clientBusAttachment = null;
+DynamicAllJoynScout.prototype.init = function(next) {
 
-// DynamicAllJoyn.prototype.foundAllJoynDevice = function(busName, version, port, objectDescription, aboutData){
+  var clientApplicationName = 'AboutPlusServiceTest';
+  var SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
+
+  clientBusAttachment = this.setupClientBusAttachment(clientApplicationName);
+  console.log('*** this.setupClientBusAttachment(clientApplicationName)');
+
+  // create a new About Listener
+  // TODO: have this call a prototype function instead of object function
+  // to conform with the Zetta way this.foundAllJoynDevice.bind(this)
+  var aboutListener = alljoyn.AboutListener(foundAllJoynDevice.bind(this));
+  // register the About Listener
+  clientBusAttachment.registerAboutListener(aboutListener)
+  // ask who implements what on the given interface
+  clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME])
+
+  next();
+};
+
+DynamicAllJoynScout.prototype.setupClientBusAttachment = function(clientApplicationName) {
+  var clientBusAttachment = alljoyn.BusAttachment(clientApplicationName, true);
+  // start the bus attachment
+  clientBusAttachment.start();
+
+  // connect to bus
+  clientBusAttachment.connect();
+  return clientBusAttachment;
+}
+
+
+// TODO: turn this into a prototype function
 var foundAllJoynDevice = function(busName, version, port, objectDescription, aboutData){
   console.log('*** DynamicAllJoyn.prototype.foundAllJoynDevice');
   
@@ -51,39 +82,4 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
   });
 
 };
-
-DynamicAllJoynScout.prototype.init = function(next) {
-
-  var clientApplicationName = 'AboutPlusServiceTest';
-  var SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
-
-  clientBusAttachment = this.setupClientBusAttachment(clientApplicationName);
-  console.log('*** this.setupClientBusAttachment(clientApplicationName)');
-
-  // create a new About Listener
-  // TODO: have this call a prototype function instead of object function
-  // to conform with the Zetta way
-  var aboutListener = alljoyn.AboutListener(foundAllJoynDevice.bind(this));
-  console.log('*** alljoyn.AboutListener');
-  // register the About Listener
-  clientBusAttachment.registerAboutListener(aboutListener)
-  console.log('*** clientBusAttachment.registerAboutListener');
-  // ask who implements what on the given interface
-  clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME])
-  console.log('*** clientBusAttachment.whoImplements');
-
-  next();
-
-};
-
-DynamicAllJoynScout.prototype.setupClientBusAttachment = function(clientApplicationName) {
-  var clientBusAttachment = alljoyn.BusAttachment(clientApplicationName, true);
-  // start the bus attachment
-  clientBusAttachment.start();
-
-  // connect to bus
-  clientBusAttachment.connect();
-  return clientBusAttachment;
-}
-
 
