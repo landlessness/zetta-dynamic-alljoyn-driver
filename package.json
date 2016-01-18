@@ -8,6 +8,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "alljoyn": "landlessness/alljoyn#v1plus",
     "zetta-device": "latest",
     "zetta-scout": "latest"
   },
