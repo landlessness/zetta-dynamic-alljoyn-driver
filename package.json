@@ -1,0 +1,22 @@
+{
+  "name": "zetta-dynamic-alljoyn-driver",
+  "version": "0.1.0",
+  "description": "Zetta starter driver for any platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "zetta-device": "latest",
+    "zetta-scout": "latest"
+  },
+  "directories": {
+    "example": "example"
+  },
+  "keywords": [
+    "zetta",
+    "alljoyn",
+    "dynamic"
+  ]
+}
