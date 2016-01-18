@@ -29,23 +29,24 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
   // assert.equal(typeof(aboutProxy), 'object');
 
   var options = {};
-  var appId = aboutData['AppId'];
+  var appId = aboutData.AppId;
   
   // TODO: make this a helper function in the AllJoyn node package
+  // so that we don't have to add it to options
   options.appIdHexString = '';
   for (i = 0; i < appId.length; i++) { 
     options.appIdHexString += appId[i].toString(16);
   }
   console.log("*** options.appIdHexString: " + options.appIdHexString)
-  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'alljoyn', alljoynId: options.appIdHexString });
+  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAlljoyn', appId: options.appIdHexString });
   this.server.find(dynamicAllJoynDeviceQuery, function(err, results){
     if (err) {
       return;
     }
     if (results.length > 0) {
-      self.provision(results[0], DynamicAllJoyn, options);
+      self.provision(results[0], DynamicAllJoyn, options, aboutData);
     } else {
-      self.discover(DynamicAllJoyn, options);
+      self.discover(DynamicAllJoyn, options, aboutData);
     }
   });
 
