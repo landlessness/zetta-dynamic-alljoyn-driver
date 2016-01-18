@@ -60,10 +60,9 @@ DynamicAllJoynScout.prototype.init = function(next) {
   console.log('*** this.setupClientBusAttachment(clientApplicationName)');
 
   // create a new About Listener
+  // TODO: have this call a prototype function instead of object function
+  // to conform with the Zetta way
   var aboutListener = alljoyn.AboutListener(foundAllJoynDevice.bind(this));
-  // var aboutListener = alljoyn.AboutListener(this.foundAllJoynDevice.bind(this));
-  // var aboutListener = alljoyn.AboutListener(this.foundAllJoynDevice);
-  // var aboutListener = alljoyn.AboutListener(function(){console.log('*** inside about callback')}.bind(this));
   console.log('*** alljoyn.AboutListener');
   // register the About Listener
   clientBusAttachment.registerAboutListener(aboutListener)
