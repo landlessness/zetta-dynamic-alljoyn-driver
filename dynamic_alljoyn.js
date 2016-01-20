@@ -1,22 +1,18 @@
 var Device = require('zetta-device');
 var util = require('util');
 
-var DynamicAllJoyn = module.exports = function(options, aboutData) {
+var DynamicAllJoyn = module.exports = function(aboutData, membersForInterface) {
   Device.call(this);
-  this._default = options['default'];
-  // TODO: have this use the Node AllJoyn helper function
-  // for HexString Id once it's ready  
-  this.appId = options.appIdHexString;
-  this.deviceName = aboutData.DeviceName;
-  this.deviceId = aboutData.DeviceId;
-  this.appName = aboutData.AppName;
-  this.manufacturer = aboutData.Manufacturer;
-  this.modelNumber = aboutData.ModelNumber;
-  this.description = aboutData.Description;
-  this.dateOfManufacture = aboutData.DateOfManufacture;
-  this.softwareVersion = aboutData.SoftwareVersion;
-  this.hardwareVersion = aboutData.HardwareVersion;
-  this.supportUrl = aboutData.SupportUrl;
+
+  // Set Zetta properties based on AllJoyn AboutData
+  properties = Object.keys(aboutData);
+  for (i = 0; i < properties.length; i++) {
+    this[properties[i]] = aboutData[properties[i]];
+  }
+  
+  // setup Zetta monitors based on AllJoyn Signals
+  
+  
 };
 util.inherits(DynamicAllJoyn, Device);
 
@@ -34,7 +30,7 @@ DynamicAllJoyn.prototype.init = function(config) {
 
 DynamicAllJoyn.prototype.do = function(message, cb) {
   this.state = 'doing';
-  this.log(this._default + ': ' + message);
+  this.log('do: ' + message);
   this.state = 'waiting';
   cb();
 };

@@ -11,22 +11,18 @@ var DynamicAllJoynScout = module.exports = function() {
 util.inherits(DynamicAllJoynScout, Scout);
 
 DynamicAllJoynScout.prototype.init = function(next) {
-
   var clientApplicationName = 'AboutPlusServiceTest';
   var SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
-
   clientBusAttachment = this.setupClientBusAttachment(clientApplicationName);
-  console.log('*** this.setupClientBusAttachment(clientApplicationName)');
 
-  // create a new About Listener
   // TODO: have this call a prototype function instead of object function
   // to conform with the Zetta way this.foundAllJoynDevice.bind(this)
+  // create a new About Listener
   var aboutListener = alljoyn.AboutListener(foundAllJoynDevice.bind(this));
   // register the About Listener
-  clientBusAttachment.registerAboutListener(aboutListener)
+  clientBusAttachment.registerAboutListener(aboutListener);
   // ask who implements what on the given interface
-  clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME])
-
+  clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME]);
   next();
 };
 
@@ -40,46 +36,49 @@ DynamicAllJoynScout.prototype.setupClientBusAttachment = function(clientApplicat
   return clientBusAttachment;
 }
 
-
 // TODO: turn this into a prototype function
 var foundAllJoynDevice = function(busName, version, port, objectDescription, aboutData){
-  console.log('*** DynamicAllJoyn.prototype.foundAllJoynDevice');
-  
   var self = this;
-  // once the Announced callback has fired let's go ahead and 
-  // join the session and get more About info
+
+  // join the session and get the complete About Data from the AboutProxy
   var sessionId = 0;
-
   sessionId = clientBusAttachment.joinSession(busName, port, sessionId);
-  // if the returned sessionId a string then it's an error message
-  // number is good
-  // assert.equal(typeof(sessionId),'number');
-
-  // let's get the About proxy
-  var aboutProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId);
-  // assert.equal(typeof(aboutProxy), 'object');
-
-  var options = {};
-  var appId = aboutData.AppId;
-  
-  // TODO: make this a helper function in the AllJoyn node package
-  // so that we don't have to add it to options
-  options.appIdHexString = '';
-  for (i = 0; i < appId.length; i++) { 
-    options.appIdHexString += appId[i].toString(16);
+  var aboutDataFromProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId).getAboutData('en');
+  // TODO: Use Zetta's UUID handling?
+  aboutDataFromProxy.AppIdHexString = '';
+  for (i = 0; i < aboutDataFromProxy.AppId.length; i++) { 
+    aboutDataFromProxy.AppIdHexString += aboutDataFromProxy.AppId[i].toString(16);
   }
-  console.log("*** options.appIdHexString: " + options.appIdHexString)
-  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAlljoyn', appId: options.appIdHexString });
+
+  // Grab all the members for each Interface Description
+  // FYI: AllJoyn Events and Actions API Guide
+  // https://allseenalliance.org/framework/documentation/develop/api-guide/events-and-actions
+  var membersForInterface = {};
+  var paths = Object.keys(objectDescription);
+  for (i = 0; i < paths.length; i++) {
+    var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
+    var interfaceNames = proxyBusObject.getInterfaceNames();
+    // TODO: add a regex filter for interface names
+    // 'com.se.bus.discovery', 'org.allseen.Introspectable',
+    // 'org.freedesktop.DBus.Introspectable', 'org.freedesktop.DBus.Peer'
+    for (j = 0; j < interfaceNames.length; j++) {
+      var serviceInterfaceDescription = alljoyn.InterfaceDescription();
+      proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
+      membersForInterface[interfaceNames[j]] = serviceInterfaceDescription.getMembers();
+    }
+  }
+
+  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAlljoyn', AppIdHexString: aboutDataFromProxy.AppIdHexString });
+
   this.server.find(dynamicAllJoynDeviceQuery, function(err, results){
     if (err) {
       return;
     }
     if (results.length > 0) {
-      self.provision(results[0], DynamicAllJoyn, options, aboutData);
+      self.provision(results[0], DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
     } else {
-      self.discover(DynamicAllJoyn, options, aboutData);
+      self.discover(DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
     }
   });
 
 };
-
