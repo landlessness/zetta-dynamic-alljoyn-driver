@@ -10,7 +10,7 @@
   "dependencies": {
     "alljoyn": "landlessness/alljoyn#v1plus",
     "zetta-device": "latest",
-    "zetta-scout": "latest"
+    "zetta-scout": "landlessness/zetta-scout#alias-discover-and-provision"
   },
   "directories": {
     "example": "example"

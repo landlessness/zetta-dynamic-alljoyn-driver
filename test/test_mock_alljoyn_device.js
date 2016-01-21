@@ -13,6 +13,7 @@ var DynamicAllJoyn = require('../index');
 describe('A Dynamic AllJoyn Device', function() {
   
   before(function(done){
+    Object.create(DynamicAllJoyn.prototype);
     done();
   });
 

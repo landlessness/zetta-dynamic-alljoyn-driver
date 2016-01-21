@@ -7,13 +7,13 @@ var clientBusAttachment = null;
 
 var DynamicAllJoynScout = module.exports = function() {
   Scout.call(this);
+  this.serviceInterfaceNames = arguments[0];
+  this.clientApplicationName = arguments[1];
 };
 util.inherits(DynamicAllJoynScout, Scout);
 
 DynamicAllJoynScout.prototype.init = function(next) {
-  var clientApplicationName = 'AboutPlusServiceTest';
-  var SERVICE_INTERFACE_NAME = 'com.se.bus.discovery';
-  clientBusAttachment = this.setupClientBusAttachment(clientApplicationName);
+  clientBusAttachment = this.setupClientBusAttachment(this.clientApplicationName);
 
   // TODO: have this call a prototype function instead of object function
   // to conform with the Zetta way this.foundAllJoynDevice.bind(this)
@@ -22,7 +22,7 @@ DynamicAllJoynScout.prototype.init = function(next) {
   // register the About Listener
   clientBusAttachment.registerAboutListener(aboutListener);
   // ask who implements what on the given interface
-  clientBusAttachment.whoImplements([SERVICE_INTERFACE_NAME]);
+  clientBusAttachment.whoImplements(this.serviceInterfaceNames);
   next();
 };
 
@@ -55,29 +55,30 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
   // https://allseenalliance.org/framework/documentation/develop/api-guide/events-and-actions
   var membersForInterface = {};
   var paths = Object.keys(objectDescription);
+  aboutDataFromProxy.interfaceNames = [];
   for (i = 0; i < paths.length; i++) {
     var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
     var interfaceNames = proxyBusObject.getInterfaceNames();
-    // TODO: add a regex filter for interface names
-    // 'com.se.bus.discovery', 'org.allseen.Introspectable',
-    // 'org.freedesktop.DBus.Introspectable', 'org.freedesktop.DBus.Peer'
     for (j = 0; j < interfaceNames.length; j++) {
-      var serviceInterfaceDescription = alljoyn.InterfaceDescription();
-      proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
-      membersForInterface[interfaceNames[j]] = serviceInterfaceDescription.getMembers();
+      if (this.serviceInterfaceNames.indexOf(interfaceNames[j]) > -1) {
+        var serviceInterfaceDescription = alljoyn.InterfaceDescription();
+        proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
+        membersForInterface[interfaceNames[j]] = serviceInterfaceDescription.getMembers();
+        aboutDataFromProxy.interfaceNames.push(interfaceNames[j]);
+      }
     }
   }
 
-  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAlljoyn', AppIdHexString: aboutDataFromProxy.AppIdHexString });
+  var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAllJoyn', AppIdHexString: aboutDataFromProxy.AppIdHexString });
 
   this.server.find(dynamicAllJoynDeviceQuery, function(err, results){
     if (err) {
       return;
     }
     if (results.length > 0) {
-      self.provision(results[0], DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
+      self.getFromRegistry(results[0], DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
     } else {
-      self.discover(DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
+      self.addToRegistry(DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
     }
   });
 
