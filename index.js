@@ -53,20 +53,21 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
   // Grab all the members for each Interface Description
   // FYI: AllJoyn Events and Actions API Guide
   // https://allseenalliance.org/framework/documentation/develop/api-guide/events-and-actions
-  var membersForInterface = {};
+  var interfacesForPath = {};
   var paths = Object.keys(objectDescription);
-  aboutDataFromProxy.interfaceNames = [];
   for (i = 0; i < paths.length; i++) {
+    var membersForInterface = {};
     var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
     var interfaceNames = proxyBusObject.getInterfaceNames();
     for (j = 0; j < interfaceNames.length; j++) {
       if (this.serviceInterfaceNames.indexOf(interfaceNames[j]) > -1) {
         var serviceInterfaceDescription = alljoyn.InterfaceDescription();
         proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
-        membersForInterface[interfaceNames[j]] = serviceInterfaceDescription.getMembers();
-        aboutDataFromProxy.interfaceNames.push(interfaceNames[j]);
+        membersForInterface[interfaceNames[j]] = {members: serviceInterfaceDescription.getMembers(), interfaceDescription: serviceInterfaceDescription};
       }
     }
+    var busObject = alljoyn.BusObject(paths[i]);
+    interfacesForPath[paths[i]] = {membersForInterface: membersForInterface, busObject: busObject};
   }
 
   var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAllJoyn', AppIdHexString: aboutDataFromProxy.AppIdHexString });
@@ -76,7 +77,7 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
       return;
     }
     if (results.length > 0) {
-      self.getFromRegistry(results[0], DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
+      self.getFromRegistry(results[0], DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
     } else {
       self.addToRegistry(DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
     }
