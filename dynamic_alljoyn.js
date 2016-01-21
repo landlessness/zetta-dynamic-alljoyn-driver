@@ -14,6 +14,7 @@ var DynamicAllJoyn = module.exports = function(aboutData, interfacesForPath, bus
 
   this._interfacesForPath = interfacesForPath;
   this._busAttachment = busAttachment;
+  this.doing = null;
 
   // Set Zetta properties based on AllJoyn AboutData
   var properties = Object.keys(aboutData);
@@ -55,11 +56,6 @@ DynamicAllJoyn.prototype.init = function(config) {
           break;
         case MESSAGE_METHOD_CALL:
           console.log('MESSAGE_METHOD_CALL');
-          // https://gist.github.com/landlessness/3b46c957cf4a6f57a5fd
-          // use Wonkun's work here
-          // this._transitions[member.name] = {
-          //   handler: function() {}
-          // }
           break;
         case MESSAGE_METHOD_RET:
           console.log('MESSAGE_METHOD_RET');
@@ -69,13 +65,26 @@ DynamicAllJoyn.prototype.init = function(config) {
           break;
         case MESSAGE_SIGNAL:
           console.log('MESSAGE_SIGNAL: ' + member.name);
+
+          // create Zetta monitor on the AllJoyn Signal
           config.monitor(member.name);
+
+          var busObject = this._interfacesForPath[paths[h]].busObject;
+
+          // this Zetta callback responds to AllJoyn signals (registered below)
+          // it updates a Zetta-monitored property with an AllJoyn msg
+          // the following code:
+          // self[sender.memberName] = msg; 
+          // is equivalent to:
+          // this.Hearbeat = 'bump';
+          // where this / self is the device driver object
           var signalHandler = function(msg, sender){
-            console.log('signalHandler: ' + sender.memberName);
             self[sender.memberName] = msg;
           };
-          var busObject = this._interfacesForPath[paths[h]].busObject;
+
+          // register Zetta callback for reacting to AllJoyn signals
           this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceNames[i]].interfaceDescription, member.name)
+
           // TODO: remove this setInterval, it's just for testing
           // setInterval(function(m) {
           //   self[m.name] = Math.floor(Math.random() * 100);
@@ -91,6 +100,7 @@ DynamicAllJoyn.prototype.init = function(config) {
 DynamicAllJoyn.prototype.do = function(message, cb) {
   this.state = 'doing';
   this.log('do: ' + message);
+  this.doing = message;
   this.state = 'waiting';
   cb();
 };
