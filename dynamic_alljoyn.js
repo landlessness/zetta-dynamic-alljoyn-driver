@@ -14,7 +14,6 @@ var DynamicAllJoyn = module.exports = function(aboutData, interfacesForPath, bus
 
   this._interfacesForPath = interfacesForPath;
   this._busAttachment = busAttachment;
-  this.doing = null;
 
   // Set Zetta properties based on AllJoyn AboutData
   var properties = Object.keys(aboutData);
@@ -31,13 +30,7 @@ DynamicAllJoyn.prototype.init = function(config) {
   config
   .name('DynamicAllJoyn')
   .type('dynamicAllJoyn')
-  .state('waiting')
-  .when('waiting', { allow: ['do']})
-  .when('doing', { allow: [] })
-  .map('do', this.do, [
-    { name: 'message', type: 'text'}
-  ]);
-  
+  .state('waiting');  
   
   // setup Zetta monitors based on AllJoyn Signals
   var paths = Object.keys(this._interfacesForPath);
@@ -73,12 +66,4 @@ DynamicAllJoyn.prototype.init = function(config) {
       }
     }
   }  
-};
-
-DynamicAllJoyn.prototype.do = function(message, cb) {
-  this.state = 'doing';
-  this.log('do: ' + message);
-  this.doing = message;
-  this.state = 'waiting';
-  cb();
 };
