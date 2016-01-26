@@ -14,31 +14,28 @@ var DynamicAllJoynScout = module.exports = function() {
 util.inherits(DynamicAllJoynScout, Scout);
 
 DynamicAllJoynScout.prototype.init = function(next) {
-  clientBusAttachment = this.setupClientBusAttachment(this.clientApplicationName);
+  this._next = next;
 
-  // TODO: have this call a prototype function instead of object function
-  // to conform with the Zetta way this.foundAllJoynDevice.bind(this)
+  clientBusAttachment = this.setupClientBusAttachment(this.clientApplicationName);
   // create a new About Listener
-  var aboutListener = alljoyn.AboutListener(foundAllJoynDevice.bind(this));
+  var aboutListener = alljoyn.AboutListener(this.foundAllJoynDevice.bind(this));
   // register the About Listener
   clientBusAttachment.registerAboutListener(aboutListener);
   // ask who implements what on the given interface
   clientBusAttachment.whoImplements(this.serviceInterfaceNames);
-  next();
 };
 
 DynamicAllJoynScout.prototype.setupClientBusAttachment = function(clientApplicationName) {
   var clientBusAttachment = alljoyn.BusAttachment(clientApplicationName, true);
   // start the bus attachment
   clientBusAttachment.start();
-
   // connect to bus
   clientBusAttachment.connect();
   return clientBusAttachment;
 }
 
 // TODO: turn this into a prototype function
-var foundAllJoynDevice = function(busName, version, port, objectDescription, aboutData){
+DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, port, objectDescription, aboutData){
   var self = this;
 
   // join the session and get the complete About Data from the AboutProxy
@@ -52,8 +49,6 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
   }
 
   // Grab all the members for each Interface Description
-  // FYI: AllJoyn Events and Actions API Guide
-  // https://allseenalliance.org/framework/documentation/develop/api-guide/events-and-actions
   var interfacesForPath = {};
   var paths = Object.keys(objectDescription);
   for (i = 0; i < paths.length; i++) {
@@ -65,7 +60,7 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
         var serviceInterfaceDescription = alljoyn.InterfaceDescription();
         proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
         var members = xml.toJson(serviceInterfaceDescription.introspect(), {object: true});
-        membersForInterface[interfaceNames[j]] = {interfaceDescription: serviceInterfaceDescription, members: members};
+        membersForInterface[interfaceNames[j]] = {interfaceDescription: serviceInterfaceDescription, membersForInterface: members};
       }
     }
     var busObject = alljoyn.BusObject(paths[i]);
@@ -81,8 +76,8 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
     if (results.length > 0) {
       self.getFromRegistry(results[0], DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
     } else {
-      self.addToRegistry(DynamicAllJoyn, aboutDataFromProxy, membersForInterface);
+      self.addToRegistry(DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
     }
   });
-
+  this._next();
 };
