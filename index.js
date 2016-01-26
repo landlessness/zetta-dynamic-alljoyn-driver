@@ -2,6 +2,7 @@ var Scout = require('zetta-scout');
 var util = require('util');
 var DynamicAllJoyn = require('./dynamic_alljoyn');
 var alljoyn = require('alljoyn');
+var xml = require('xml2json');
 
 var clientBusAttachment = null;
 
@@ -63,7 +64,8 @@ var foundAllJoynDevice = function(busName, version, port, objectDescription, abo
       if (this.serviceInterfaceNames.indexOf(interfaceNames[j]) > -1) {
         var serviceInterfaceDescription = alljoyn.InterfaceDescription();
         proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
-        membersForInterface[interfaceNames[j]] = {members: serviceInterfaceDescription.getMembers(), interfaceDescription: serviceInterfaceDescription};
+        var members = xml.toJson(serviceInterfaceDescription.introspect(), {object: true});
+        membersForInterface[interfaceNames[j]] = {interfaceDescription: serviceInterfaceDescription, members: members};
       }
     }
     var busObject = alljoyn.BusObject(paths[i]);

@@ -41,57 +41,35 @@ DynamicAllJoyn.prototype.init = function(config) {
   
   // setup Zetta monitors based on AllJoyn Signals
   var paths = Object.keys(this._interfacesForPath);
-  for (h = 0; h < paths.length; h++) {
-    console.log('paths[h]: ' + paths[h]);
-    var membersForInterface = this._interfacesForPath[paths[h]].membersForInterface;
+  for (p = 0; p < paths.length; p++) {
+    console.log('paths[h]: ' + paths[p]);
+    var membersForInterface = this._interfacesForPath[paths[p]].membersForInterface;
     var interfaceNames = Object.keys(membersForInterface);
     for (i = 0; i < interfaceNames.length; i++) {
       var members = membersForInterface[interfaceNames[i]].members;
-      for (j = 0; j < members.length; j++) {    
-        var member = members[j];
-        console.log('member.memberType: ' + member.memberType);
-        switch (member.memberType) {
-        case MESSAGE_INVALID:
-          console.log('MESSAGE_INVALID');
-          break;
-        case MESSAGE_METHOD_CALL:
-          console.log('MESSAGE_METHOD_CALL');
-          break;
-        case MESSAGE_METHOD_RET:
-          console.log('MESSAGE_METHOD_RET');
-          break;
-        case MESSAGE_ERROR:
-          console.log('MESSAGE_ERROR');
-          break;
-        case MESSAGE_SIGNAL:
-          console.log('MESSAGE_SIGNAL: ' + member.name);
+      console.log('members: ' + util.inspect(members));
+      for (s = 0; s < members.interface.signal.length; s++) {
+        debugger;
+        var signal = members.interface.signal[s];
+        // create Zetta monitor on the AllJoyn Signal
+        console.log('signal name: ' + signal.name);
+        config.monitor(signal.name);
 
-          // create Zetta monitor on the AllJoyn Signal
-          config.monitor(member.name);
+        var busObject = this._interfacesForPath[paths[p]].busObject;
 
-          var busObject = this._interfacesForPath[paths[h]].busObject;
+        // this Zetta callback responds to AllJoyn signals (registered below)
+        // it updates a Zetta-monitored property with an AllJoyn msg
+        // the following code:
+        // self[sender.memberName] = msg; 
+        // is equivalent to:
+        // this.Hearbeat = 'bump';
+        // where this / self is the device driver object
+        var signalHandler = function(msg, sender){
+          self[sender.memberName] = msg;
+        };
 
-          // this Zetta callback responds to AllJoyn signals (registered below)
-          // it updates a Zetta-monitored property with an AllJoyn msg
-          // the following code:
-          // self[sender.memberName] = msg; 
-          // is equivalent to:
-          // this.Hearbeat = 'bump';
-          // where this / self is the device driver object
-          var signalHandler = function(msg, sender){
-            self[sender.memberName] = msg;
-          };
-
-          // register Zetta callback for reacting to AllJoyn signals
-          this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceNames[i]].interfaceDescription, member.name)
-
-          // TODO: remove this setInterval, it's just for testing
-          // setInterval(function(m) {
-          //   self[m.name] = Math.floor(Math.random() * 100);
-          // }, 1000, member);
-          break;
-        default:
-        }
+        // register Zetta callback for reacting to AllJoyn signals
+        this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceNames[i]].interfaceDescription, signal.name)
       }
     }
   }  
