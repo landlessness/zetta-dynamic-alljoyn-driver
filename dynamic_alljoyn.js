@@ -31,10 +31,13 @@ DynamicAllJoyn.prototype.init = function(config) {
   // setup Zetta monitors based on AllJoyn Signals
   var paths = Object.keys(this._interfacesForPath);
   for (p = 0; p < paths.length; p++) {
+    var busObject = this._interfacesForPath[paths[p]].busObject;
+    var proxyBusObject = this._interfacesForPath[paths[p]].proxyBusObject;
     var membersForInterface = this._interfacesForPath[paths[p]].membersForInterface;
     var interfaceNames = Object.keys(membersForInterface);
     for (i = 0; i < interfaceNames.length; i++) {
-      var members = membersForInterface[interfaceNames[i]].membersForInterface;
+      var interfaceName = interfaceNames[i];
+      var members = membersForInterface[interfaceName].membersForInterface;
       if (typeof(members) == 'undefined' || members.length < 1) {
         continue;
       }
@@ -47,8 +50,7 @@ DynamicAllJoyn.prototype.init = function(config) {
         var signalHandler = function(msg, sender){
           self[sender.memberName] = msg;
         };
-        var busObject = this._interfacesForPath[paths[p]].busObject;
-        this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceNames[i]].interfaceDescription, signal.name)
+        this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceName].interfaceDescription, signal.name)
       }
       
       // initialize methods
@@ -56,10 +58,39 @@ DynamicAllJoyn.prototype.init = function(config) {
       for (m = 0; m < methods.length; m++) {
         var method = methods[m];
         allowableMethods.push(method.name);
-        config.map(method.name, function(message, cb){console.log('method.name: ' + method.name + ' message: ' + message); cb();}, [{ name: 'message', type: 'text'}]);
+
+        inArgs = [];
+        outArgs = [];
+        zettaArgs = [];
+        var args = ('length' in method.arg) ? method.arg : [method.arg];
+        for (a = 0; a < method.arg.length; a++) {
+          var arg = method.arg[a];
+          if (/^in$/.test(arg.direction)) {
+            inArgs.push({signature: arg.type});
+            zettaArgs.push({name: arg.name, type: this.zettaTypeFromAllJoynType(arg.type)});
+          } else if (/^out$/.test(arg.direction)) {
+            outArgs.push({signature: arg.type, name: arg.name});
+          }
+        }
+        config.map(method.name, function() {
+          for (a = 0; a < inArgs.length; a++) {
+            inArgs[a]['value'] = arguments[a];
+          }
+          var methodResponse = proxyBusObject.methodCall(self._busAttachment, interfaceName, method.name, inArgs, outArgs);
+          var returnedProperties = Object.keys(methodResponse);
+          for (r = 0; r < returnedProperties.length; r++) {
+            self[returnedProperties[r]] = methodResponse[returnedProperties[r]];
+          }
+          var cb = arguments[arguments.length-1];
+          cb();
+        }, zettaArgs);
       }
     }
   }
   
   config.when('ready', { allow: allowableMethods});
 };
+
+DynamicAllJoyn.prototype.zettaTypeFromAllJoynType = function(allJoynType) {
+  return 'text';
+}

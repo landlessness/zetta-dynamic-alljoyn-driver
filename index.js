@@ -64,7 +64,7 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
       }
     }
     var busObject = alljoyn.BusObject(paths[i]);
-    interfacesForPath[paths[i]] = {membersForInterface: membersForInterface, busObject: busObject};
+    interfacesForPath[paths[i]] = {membersForInterface: membersForInterface, busObject: busObject, proxyBusObject: proxyBusObject};
   }
 
   var dynamicAllJoynDeviceQuery = this.server.where({ type: 'dynamicAllJoyn', AppIdHexString: aboutDataFromProxy.AppIdHexString });
