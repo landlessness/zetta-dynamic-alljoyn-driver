@@ -63,6 +63,7 @@ DynamicAllJoyn.prototype.init = function(config) {
         outArgs = [];
         zettaArgs = [];
         var args = ('length' in method.arg) ? method.arg : [method.arg];
+        // for (a = 0; a < method.arg.length; a++) {
         for (a = 0; a < method.arg.length; a++) {
           var arg = method.arg[a];
           if (/^in$/.test(arg.direction)) {
@@ -72,18 +73,26 @@ DynamicAllJoyn.prototype.init = function(config) {
             outArgs.push({signature: arg.type, name: arg.name});
           }
         }
+        var transitionCallbackParams = {
+          inArgs: inArgs,
+          methodName: method.name,
+          outArgs: outArgs,
+          interfaceName: interfaceName,
+          busAttachment: this._busAttachment,
+          driver: this
+        }
         config.map(method.name, function() {
-          for (a = 0; a < inArgs.length; a++) {
-            inArgs[a]['value'] = arguments[a];
+          for (a = 0; a < this.inArgs.length; a++) {
+            this.inArgs[a]['value'] = arguments[a];
           }
-          var methodResponse = proxyBusObject.methodCall(self._busAttachment, interfaceName, method.name, inArgs, outArgs);
+          var methodResponse = proxyBusObject.methodCall(this.busAttachment, this.interfaceName, this.methodName, this.inArgs, this.outArgs);
           var returnedProperties = Object.keys(methodResponse);
           for (r = 0; r < returnedProperties.length; r++) {
-            self[returnedProperties[r]] = methodResponse[returnedProperties[r]];
+            this.driver[returnedProperties[r]] = methodResponse[returnedProperties[r]];
           }
           var cb = arguments[arguments.length-1];
           cb();
-        }, zettaArgs);
+        }.bind(transitionCallbackParams), zettaArgs);
       }
     }
   }
