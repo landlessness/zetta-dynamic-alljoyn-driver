@@ -23,6 +23,11 @@ DynamicAllJoyn.prototype.init = function(config) {
   .type('dynamicAllJoyn')
   .state('ready');
   
+  var allowableMethods = [];
+
+  // TODO: craete fully qualified signal and method names
+  // that are nested beneath paths, interface names
+
   // setup Zetta monitors based on AllJoyn Signals
   var paths = Object.keys(this._interfacesForPath);
   for (p = 0; p < paths.length; p++) {
@@ -38,33 +43,23 @@ DynamicAllJoyn.prototype.init = function(config) {
       var signals = members.interface.signal;
       for (s = 0; s < signals.length; s++) {
         var signal = signals[s];
-
-        // create Zetta monitor on the AllJoyn Signal
         config.monitor(signal.name);
-
-        // update values from AllJoyn Signal
         var signalHandler = function(msg, sender){
           self[sender.memberName] = msg;
         };
-
-        // register Zetta callback for reacting to AllJoyn signals
         var busObject = this._interfacesForPath[paths[p]].busObject;
         this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceNames[i]].interfaceDescription, signal.name)
       }
       
       // initialize methods
-
-      var allowableMethods = [];
-
       var methods = members.interface.method;
       for (m = 0; m < methods.length; m++) {
         var method = methods[m];
         allowableMethods.push(method.name);
         config.map(method.name, function(message, cb){console.log('method.name: ' + method.name + ' message: ' + message); cb();}, [{ name: 'message', type: 'text'}]);
       }
-      
-      config.when('ready', { allow: allowableMethods});
-      
     }
   }
+  
+  config.when('ready', { allow: allowableMethods});
 };
