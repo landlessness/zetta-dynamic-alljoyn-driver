@@ -15,6 +15,7 @@ util.inherits(DynamicAllJoynScout, Scout);
 
 DynamicAllJoynScout.prototype.init = function(next) {
   this._next = next;
+  this._nextFired = false;
 
   clientBusAttachment = this.setupClientBusAttachment(this.clientApplicationName);
   // create a new About Listener
@@ -79,5 +80,5 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
       self.addToRegistry(DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
     }
   });
-  this._next();
+  if (!this._nextFired) {this._nextFired = true; this._next();}
 };
