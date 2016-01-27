@@ -25,8 +25,8 @@ DynamicAllJoyn.prototype.init = function(config) {
   
   var allowableMethods = [];
 
-  // TODO: craete fully qualified signal and method names
-  // that are nested beneath paths, interface names
+  // TODO: create fully qualified signal and method names?
+  // that are nested beneath paths, interface names?
 
   // setup Zetta monitors based on AllJoyn Signals
   var paths = Object.keys(this._interfacesForPath);
@@ -47,9 +47,24 @@ DynamicAllJoyn.prototype.init = function(config) {
       for (s = 0; s < signals.length; s++) {
         var signal = signals[s];
         config.monitor(signal.name);
+        
+        var signalCallbackParams = {};
+        if ('arg' in signal) {
+          signalCallbackParams = {
+            args: ('length' in signal.arg) ? signal.arg : [signal.arg]
+          };
+        }
+        
         var signalHandler = function(msg, sender){
-          self[sender.memberName] = msg;
-        };
+          debugger;
+          var formattedMsg = {};
+          for (a = 0; a < this.args.length; a++) {
+            var arg = this.args[a];
+            formattedMsg[arg.name] = msg[a];
+            debugger;
+          }
+          self[sender.memberName] = formattedMsg;
+        }.bind(signalCallbackParams);
         this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceName].interfaceDescription, signal.name)
       }
       
@@ -73,7 +88,7 @@ DynamicAllJoyn.prototype.init = function(config) {
             outArgs.push({signature: arg.type, name: arg.name});
           }
         }
-        var transitionCallbackParams = {
+        var methodCallbackParams = {
           inArgs: inArgs,
           methodName: method.name,
           outArgs: outArgs,
@@ -92,7 +107,7 @@ DynamicAllJoyn.prototype.init = function(config) {
           }
           var cb = arguments[arguments.length-1];
           cb();
-        }.bind(transitionCallbackParams), zettaArgs);
+        }.bind(methodCallbackParams), zettaArgs);
       }
     }
   }
