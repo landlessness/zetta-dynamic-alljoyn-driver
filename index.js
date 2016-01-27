@@ -75,9 +75,9 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
       return;
     }
     if (results.length > 0) {
-      self.getFromRegistry(results[0], DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
+      self.provision(results[0], DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
     } else {
-      self.addToRegistry(DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
+      self.discover(DynamicAllJoyn, aboutDataFromProxy, interfacesForPath, clientBusAttachment);
     }
   });
   if (!this._nextFired) {this._nextFired = true; this._next();}
