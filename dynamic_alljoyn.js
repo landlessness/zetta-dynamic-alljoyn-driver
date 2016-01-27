@@ -99,10 +99,7 @@ DynamicAllJoyn.prototype.init = function(config) {
             this.inArgs[a]['value'] = arguments[a];
           }
           var methodResponse = proxyBusObject.methodCall(this.busAttachment, this.interfaceName, this.methodName, this.inArgs, this.outArgs);
-          var returnedProperties = Object.keys(methodResponse);
-          for (r = 0; r < returnedProperties.length; r++) {
-            this.driver[returnedProperties[r]] = methodResponse[returnedProperties[r]];
-          }
+          this.driver[this.methodName + 'Response'] = methodResponse;
           var cb = arguments[arguments.length-1];
           cb();
         }.bind(methodCallbackParams), zettaArgs);
