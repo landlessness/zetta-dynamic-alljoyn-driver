@@ -56,12 +56,10 @@ DynamicAllJoyn.prototype.init = function(config) {
         }
         
         var signalHandler = function(msg, sender){
-          debugger;
           var formattedMsg = {};
           for (a = 0; a < this.args.length; a++) {
             var arg = this.args[a];
             formattedMsg[arg.name] = msg[a];
-            debugger;
           }
           self[sender.memberName] = formattedMsg;
         }.bind(signalCallbackParams);
