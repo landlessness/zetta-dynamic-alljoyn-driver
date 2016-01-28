@@ -13,17 +13,18 @@
 #### Install
 
 ```
-$> git clone https://github.com/zettajs/zetta-dynamic-alljoyn-driver zetta-{device}-{platform}-driver
+$> git clone https://github.com/zettajs/zetta-dynamic-alljoyn-driver
+$> npm install
 ```
 
 ###Usage
 
 ```
 var zetta = require('zetta');
-var Starter = require('zetta-dynamic-alljoyn-driver');
+var alljoyn = require('zetta-dynamic-alljoyn-driver');
 
 zetta()
-  .use(Starter)
+  .use(alljoyn)
   .listen(1337)
 ```
 
