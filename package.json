@@ -7,11 +7,14 @@
     "test": "./node_modules/.bin/mocha -R spec"
   },
   "license": "MIT",
+  "engines": {
+    "node": "^0.10.25"
+  },
   "dependencies": {
     "alljoyn": "landlessness/alljoyn#v1plus",
-    "zetta-device": "latest",
     "zetta-scout": "^0.6.0",
-    "xml2json": "^0.9.0"
+    "xml2json": "^0.9.0",
+    "zetta-device": "~0.17.0"
   },
   "directories": {
     "example": "example"
