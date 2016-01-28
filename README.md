@@ -2,6 +2,13 @@
 
 ###Install
 
+#### Prereqs
+
+* Node v0.10.25
+* AllJoyn v14.12b
+
+#### Install
+
 ```
 $> git clone https://github.com/zettajs/zetta-dynamic-alljoyn-driver zetta-{device}-{platform}-driver
 ```
