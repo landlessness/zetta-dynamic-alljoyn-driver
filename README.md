@@ -2,10 +2,13 @@
 
 ###Install
 
-#### Prereqs
+#### Requires
 
 * Node v0.10.25
-* AllJoyn v14.12b
+
+#### Includes
+
+* AllJoyn v14.12b (via Node AllJoyn driver v1.0.0)
 
 #### Install
 
