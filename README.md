@@ -1,5 +1,9 @@
 ##Zetta Dynamic Driver for AllJoyn
 
+#### Overview
+
+This Zetta driver dynamically discovers AllJoyn devices.
+
 ###Install
 
 #### Requires
