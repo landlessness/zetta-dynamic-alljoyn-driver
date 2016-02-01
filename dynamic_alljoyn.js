@@ -46,7 +46,7 @@ DynamicAllJoyn.prototype.init = function(config) {
       var signals = members.interface.signal;
       for (s = 0; s < signals.length; s++) {
         var signal = signals[s];
-        config.monitor(signal.name);
+        config.monitor(signal._name);
         
         var signalCallbackParams = {};
         if ('arg' in signal) {
@@ -59,18 +59,18 @@ DynamicAllJoyn.prototype.init = function(config) {
           var formattedMsg = {};
           for (a = 0; a < this.args.length; a++) {
             var arg = this.args[a];
-            formattedMsg[arg.name] = msg[a];
+            formattedMsg[arg._name] = msg[a];
           }
           self[sender.memberName] = formattedMsg;
         }.bind(signalCallbackParams);
-        this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceName].interfaceDescription, signal.name)
+        this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceName].interfaceDescription, signal._name)
       }
       
       // initialize methods
       var methods = members.interface.method;
       for (m = 0; m < methods.length; m++) {
         var method = methods[m];
-        allowableMethods.push(method.name);
+        allowableMethods.push(method._name);
 
         inArgs = [];
         outArgs = [];
@@ -79,22 +79,22 @@ DynamicAllJoyn.prototype.init = function(config) {
         // for (a = 0; a < method.arg.length; a++) {
         for (a = 0; a < method.arg.length; a++) {
           var arg = method.arg[a];
-          if (/^in$/.test(arg.direction)) {
-            inArgs.push({signature: arg.type});
-            zettaArgs.push({name: arg.name, type: this.zettaTypeFromAllJoynType(arg.type)});
-          } else if (/^out$/.test(arg.direction)) {
-            outArgs.push({signature: arg.type, name: arg.name});
+          if (/^in$/.test(arg._direction)) {
+            inArgs.push({signature: arg._type});
+            zettaArgs.push({name: arg._name, type: this.zettaTypeFromAllJoynType(arg._type)});
+          } else if (/^out$/.test(arg._direction)) {
+            outArgs.push({signature: arg._type, name: arg._name});
           }
         }
         var methodCallbackParams = {
           inArgs: inArgs,
-          methodName: method.name,
+          methodName: method._name,
           outArgs: outArgs,
           interfaceName: interfaceName,
           busAttachment: this._busAttachment,
           driver: this
         }
-        config.map(method.name, function() {
+        config.map(method._name, function() {
           for (a = 0; a < this.inArgs.length; a++) {
             this.inArgs[a]['value'] = arguments[a];
           }
