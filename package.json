@@ -14,7 +14,7 @@
     "alljoyn": "landlessness/alljoyn#v1plus",
     "zetta-scout": "^0.6.0",
     "x2js": "~2.0.0",
-    "xmldom": "~0.1.21"
+    "xmldom": "~0.1.21",
     "zetta-device": "~0.17.0"
   },
   "directories": {

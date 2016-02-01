@@ -3,7 +3,7 @@ var util = require('util');
 var DynamicAllJoyn = require('./dynamic_alljoyn');
 var alljoyn = require('alljoyn');
 var x2js = require('x2js');
-var xml = new X2JS();
+var xml = new x2js();
 
 var clientBusAttachment = null;
 
@@ -46,7 +46,7 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
   var aboutDataFromProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId).getAboutData('en');
   // TODO: Use Zetta's UUID handling?
   aboutDataFromProxy.AppIdHexString = '';
-  for (i = 0; i < aboutDataFromProxy.AppId.length; i++) { 
+  for (i = 0; i < aboutDataFromProxy.AppId.length; i++) {
     aboutDataFromProxy.AppIdHexString += aboutDataFromProxy.AppId[i].toString(16);
   }
 
