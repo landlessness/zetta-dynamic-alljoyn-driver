@@ -2,7 +2,8 @@ var Scout = require('zetta-scout');
 var util = require('util');
 var DynamicAllJoyn = require('./dynamic_alljoyn');
 var alljoyn = require('alljoyn');
-var xml = require('xml2json');
+var x2js = require('x2js');
+var xml = new x2js();
 
 var clientBusAttachment = null;
 
@@ -45,7 +46,7 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
   var aboutDataFromProxy = alljoyn.AboutProxy(clientBusAttachment, busName, sessionId).getAboutData('en');
   // TODO: Use Zetta's UUID handling?
   aboutDataFromProxy.AppIdHexString = '';
-  for (i = 0; i < aboutDataFromProxy.AppId.length; i++) { 
+  for (i = 0; i < aboutDataFromProxy.AppId.length; i++) {
     aboutDataFromProxy.AppIdHexString += aboutDataFromProxy.AppId[i].toString(16);
   }
 
@@ -60,7 +61,7 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
       if (this.serviceInterfaceNames.indexOf(interfaceNames[j]) > -1) {
         var serviceInterfaceDescription = alljoyn.InterfaceDescription();
         proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
-        var members = xml.toJson(serviceInterfaceDescription.introspect(), {object: true});
+        var members = xml.xml2js(serviceInterfaceDescription.introspect(), {object: true});
         membersForInterface[interfaceNames[j]] = {interfaceDescription: serviceInterfaceDescription, membersForInterface: members};
       }
     }
