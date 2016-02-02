@@ -39,7 +39,6 @@ DynamicAllJoynScout.prototype.setupClientBusAttachment = function(clientApplicat
 // TODO: turn this into a prototype function
 DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, port, objectDescription, aboutData){
   var self = this;
-
   // join the session and get the complete About Data from the AboutProxy
   var sessionId = 0;
   sessionId = clientBusAttachment.joinSession(busName, port, sessionId);
@@ -58,12 +57,14 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
     var proxyBusObject = alljoyn.ProxyBusObject(clientBusAttachment, busName, paths[i], sessionId);
     var interfaceNames = proxyBusObject.getInterfaceNames();
     for (j = 0; j < interfaceNames.length; j++) {
-      if (this.serviceInterfaceNames.indexOf(interfaceNames[j]) > -1) {
-        var serviceInterfaceDescription = alljoyn.InterfaceDescription();
-        proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
-        var members = xml.xml2js(serviceInterfaceDescription.introspect(), {object: true});
-        membersForInterface[interfaceNames[j]] = {interfaceDescription: serviceInterfaceDescription, membersForInterface: members};
-      }
+      for (s = 0; s < this.serviceInterfaceNames.length; s++) {
+          if (regExpFromString(this.serviceInterfaceNames[s]).test(interfaceNames[j])) {
+            var serviceInterfaceDescription = alljoyn.InterfaceDescription();
+            proxyBusObject.getInterface(interfaceNames[j], serviceInterfaceDescription);
+            var members = xml.xml2js(serviceInterfaceDescription.introspect(), {object: true});
+            membersForInterface[interfaceNames[j]] = {interfaceDescription: serviceInterfaceDescription, membersForInterface: members};
+          }
+        }
     }
     var busObject = alljoyn.BusObject(paths[i]);
     interfacesForPath[paths[i]] = {membersForInterface: membersForInterface, busObject: busObject, proxyBusObject: proxyBusObject};
@@ -83,3 +84,10 @@ DynamicAllJoynScout.prototype.foundAllJoynDevice = function(busName, version, po
   });
   if (!this._nextFired) {this._nextFired = true; this._next();}
 };
+
+var regExpFromString = function(s) {
+  var regexpString = s.replace(/\./g, "\\.");
+  regexpString = regexpString.replace(/\*$/, ".*");
+  regexpString = "^" + regexpString + "$";
+  return new RegExp(regexpString);
+}
