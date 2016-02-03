@@ -61,7 +61,7 @@ DynamicAllJoyn.prototype.init = function(config) {
             var arg = this.args[a];
             formattedMsg[arg._name] = msg[a];
           }
-          self[sender.memberName] = formattedMsg;
+          self[sender.member_name] = formattedMsg;
         }.bind(signalCallbackParams);
         this._busAttachment.registerSignalHandler(busObject, signalHandler, membersForInterface[interfaceName].interfaceDescription, signal._name)
       }
